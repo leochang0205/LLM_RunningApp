@@ -1,0 +1,5 @@
+<menu id="SleepSubmenu" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+    <menu-item id="sleep_data" label="@Strings.menu_sleep_data" />
+    <menu-item id="sleep_analysis" label="@Strings.menu_sleep_analysis_data" />
+    <menu-item id="sleep_history" label="@Strings.menu_sleep_history" />
+</menu>

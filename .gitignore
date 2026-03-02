@@ -1,0 +1,15 @@
+# Build outputs
+bin/
+gen/
+mir/
+
+# Compiled files
+*.prg
+*.debug.xml
+
+# Sensitive data
+developer_key
+
+# Temporary files
+_nul
+nul

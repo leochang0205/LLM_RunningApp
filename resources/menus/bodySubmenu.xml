@@ -1,0 +1,5 @@
+<menu id="BodySubmenu" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+    <menu-item id="body_data" label="@Strings.menu_body_data" />
+    <menu-item id="body_analysis" label="@Strings.menu_body_analysis_data" />
+    <menu-item id="body_history" label="@Strings.menu_body_history" />
+</menu>

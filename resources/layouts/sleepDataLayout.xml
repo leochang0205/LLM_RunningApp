@@ -1,0 +1,5 @@
+<layout id="SleepDataLayout">
+    <label id="titleLabel" x="center" y="5%" text="Sleep Data" color="Graphics.COLOR_WHITE" justification="Graphics.TEXT_JUSTIFY_CENTER" font="Graphics.FONT_MEDIUM" />
+    <label id="dataLabel" x="5%" y="20%" text="Loading..." color="Graphics.COLOR_WHITE" justification="Graphics.TEXT_JUSTIFY_LEFT" font="Graphics.FONT_TINY" />
+    <label id="hintLabel" x="center" y="90%" text="Press BACK to return" color="Graphics.COLOR_LT_GRAY" justification="Graphics.TEXT_JUSTIFY_CENTER" font="Graphics.FONT_TINY" />
+</layout>

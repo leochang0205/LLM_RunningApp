@@ -1,0 +1,54 @@
+<strings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+    <string id="AppName">AI Body Doctor</string>
+
+    <string id="prompt">AI Body Doctor</string>
+
+    <string id="menu_body_analysis">身体状态分析</string>
+    <string id="menu_motion_analysis">运动分析</string>
+    <string id="menu_sleep_analysis">睡眠分析</string>
+
+    <string id="menu_body_data">身体数据</string>
+    <string id="menu_body_analysis_data">分析数据</string>
+    <string id="menu_body_history">历史记录</string>
+
+    <string id="menu_motion_data">运动数据</string>
+    <string id="menu_motion_analysis_data">分析数据</string>
+    <string id="menu_motion_history">历史记录</string>
+
+    <string id="menu_sleep_data">睡眠数据</string>
+    <string id="menu_sleep_analysis_data">分析数据</string>
+    <string id="menu_sleep_history">历史记录</string>
+
+    <string id="menu_config">设置</string>
+
+    <string id="loading">分析中</string>
+    <string id="analyzing">AI 正在分析您的数据</string>
+    <string id="please_wait">请稍候</string>
+
+    <string id="no_motion_data">今日暂无运动数据</string>
+    <string id="no_sleep_data">暂无睡眠数据</string>
+    <string id="no_data_available">暂无数据</string>
+
+    <string id="network_error">网络连接失败</string>
+    <string id="api_error">API 调用失败</string>
+    <string id="api_not_configured">API 未配置</string>
+    <string id="connection_error">连接失败</string>
+
+    <string id="back">返回</string>
+    <string id="retry">重试</string>
+    <string id="cancel">取消</string>
+
+    <string id="scroll_tip">按上/下键滚动</string>
+    <string id="analysis_result">分析结果</string>
+
+    <string id="body_analysis_title">身体状态</string>
+    <string id="motion_analysis_title">运动分析</string>
+    <string id="sleep_analysis_title">睡眠分析</string>
+
+    <string id="error_title">错误</string>
+    <string id="error_message">发生错误</string>
+
+    <string id="data_collected">数据已采集</string>
+    <string id="sending_request">正在发送请求</string>
+    <string id="receiving_response">正在接收响应</string>
+</strings>

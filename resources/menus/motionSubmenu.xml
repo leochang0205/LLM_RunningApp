@@ -1,0 +1,5 @@
+<menu id="MotionSubmenu" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+    <menu-item id="motion_data" label="@Strings.menu_motion_data" />
+    <menu-item id="motion_analysis" label="@Strings.menu_motion_analysis_data" />
+    <menu-item id="motion_history" label="@Strings.menu_motion_history" />
+</menu>
