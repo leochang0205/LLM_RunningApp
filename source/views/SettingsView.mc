@@ -1,5 +1,6 @@
 import Toybox.WatchUi;
 import Toybox.Graphics;
+import Toybox.Graphics.Dc;
 import Toybox.Lang;
 import Toybox.Application.Properties;
 
@@ -29,10 +30,10 @@ class SettingsView extends WatchUi.View {
     }
 
     function onShow() as Void {
+        WatchUi.requestUpdate();
     }
 
     function onUpdate(dc as Dc) as Void {
-        View.onUpdate(dc);
         drawSettings(dc);
     }
 
@@ -160,31 +161,37 @@ class SettingsView extends WatchUi.View {
     }
 
     private function drawSettings(dc as Dc) as Void {
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_WHITE);
+        dc.clear();
+
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
+        dc.drawText(dc.getWidth() / 2, 20, Graphics.FONT_MEDIUM, "Settings", Graphics.TEXT_JUSTIFY_CENTER);
+
         var app = getApp() as LLM_RunningAppApp;
         var config = app.getConfig();
         var items = [
             {:key => "api_key", :label => "API Key", :value => config[:apiKey]},
-            {:key => "model", :label => "Model", :value => config[:model]},
-            {:key => "temperature", :label => "Temp", :value => config[:temperature]},
-            {:key => "max_tokens", :label => "Tokens", :value => config[:maxTokens]}
+            {:key => "model", :label => "AI Model", :value => config[:model]},
+            {:key => "temperature", :label => "Temperature", :value => config[:temperature]},
+            {:key => "max_tokens", :label => "Max Tokens", :value => config[:maxTokens]}
         ];
 
-        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_WHITE);
-        dc.clear();
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
+        var contentFont = Graphics.FONT_TINY;
+        var y = 65;
 
-        var y = 20;
         for (var i = 0; i < items.size(); i++) {
             var item = items[i];
             var isSelected = (i == mCurrentItem && !mEditing);
 
             if (isSelected) {
+                dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_WHITE);
+                dc.fillRectangle(10, y - 5, dc.getWidth() - 20, 38);
                 dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_WHITE);
             } else {
                 dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
             }
 
-            dc.drawText(20, y, Graphics.FONT_SMALL, item[:label], Graphics.TEXT_JUSTIFY_LEFT);
+            dc.drawText(20, y, contentFont, item[:label], Graphics.TEXT_JUSTIFY_LEFT);
             var valueStr = "";
             if (item[:value] != null) {
                 if (item[:value] instanceof String) {
@@ -193,33 +200,15 @@ class SettingsView extends WatchUi.View {
                     valueStr = (item[:value] as Number).toString();
                 }
             }
-            if (item[:key] == "api_key" && valueStr.length() > 0) {
-                valueStr = "••••••••";
+            if (item[:key] == "api_key") {
+                if (valueStr.length() > 0) {
+                    valueStr = "[已配置]";
+                } else {
+                    valueStr = "[未配置]";
+                }
             }
-            dc.drawText(150, y, Graphics.FONT_SMALL, valueStr, Graphics.TEXT_JUSTIFY_LEFT);
-            y += 40;
-        }
-
-        if (mEditingText) {
-            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-            dc.drawText(20, 170, Graphics.FONT_TINY, "Set API Key in", Graphics.TEXT_JUSTIFY_LEFT);
-            dc.drawText(20, 190, Graphics.FONT_TINY, "Garmin Connect app", Graphics.TEXT_JUSTIFY_LEFT);
-            dc.drawText(20, 210, Graphics.FONT_TINY, "Back: Cancel", Graphics.TEXT_JUSTIFY_LEFT);
-        } else if (mEditing) {
-            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-            var editValueStr = "";
-            if (mEditValue != null) {
-                editValueStr = mEditValue.toString();
-            }
-            if (mCurrentItem == 1) {
-                editValueStr = getModelNameByIndex(mEditValue as Number);
-            }
-            dc.drawText(20, 180, Graphics.FONT_TINY, "Editing: " + editValueStr, Graphics.TEXT_JUSTIFY_LEFT);
-            dc.drawText(20, 200, Graphics.FONT_TINY, "Enter: Save, Back: Cancel", Graphics.TEXT_JUSTIFY_LEFT);
-        } else {
-            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-            dc.drawText(20, 180, Graphics.FONT_TINY, "Press to Edit", Graphics.TEXT_JUSTIFY_LEFT);
-            dc.drawText(20, 200, Graphics.FONT_TINY, "Enter: Edit, Back: Exit", Graphics.TEXT_JUSTIFY_LEFT);
+            dc.drawText(140, y, contentFont, valueStr, Graphics.TEXT_JUSTIFY_LEFT);
+            y += 45;
         }
     }
 

@@ -1,0 +1,3 @@
+<layout id="SettingsLayout">
+    <label id="titleLabel" x="center" y="5%" text="Settings" color="Graphics.COLOR_WHITE" justification="Graphics.TEXT_JUSTIFY_CENTER" font="Graphics.FONT_MEDIUM" />
+</layout>
