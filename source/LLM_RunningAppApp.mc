@@ -53,6 +53,12 @@ class LLM_RunningAppApp extends Application.AppBase {
 
     function getApiKey() as String {
         var apiKey = Properties.getValue("api_key");
+        System.println("getApiKey called, raw result type: " + (apiKey != null ? "Object" : "Null"));
+        if (apiKey != null) {
+            System.println("API Key type: String, length: " + (apiKey as String).length());
+        } else {
+            System.println("API Key is null");
+        }
         if (apiKey == null) {
             return "";
         }

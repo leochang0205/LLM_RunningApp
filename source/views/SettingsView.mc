@@ -9,7 +9,7 @@ class SettingsView extends WatchUi.View {
     private var mCurrentItem as Number;
     private var mEditing as Boolean;
     private var mShowingError as Boolean;
-    private var mEditValue as Lang.Object;
+    private var mEditValue as Number;
     private var mEditStep as Number;
     private var mEditMin as Number;
     private var mEditMax as Number;
@@ -50,14 +50,22 @@ class SettingsView extends WatchUi.View {
 
     function onUpdate(dc as Graphics.Dc) as Void {
         var settingsLabel = View.findDrawableById("settingsLabel") as Text;
+        System.println("onUpdate called, mSettingsText: " + mSettingsText);
         if (settingsLabel != null) {
             settingsLabel.setText(mSettingsText);
+            System.println("Label text set");
+        } else {
+            System.println("ERROR: settingsLabel is null");
         }
         View.onUpdate(dc);
     }
 
     function handleSelect() as Void {
         if (mShowingError) {
+            return;
+        }
+
+        if (mCurrentItem == 0 || mCurrentItem == 1) {
             return;
         }
 
@@ -125,92 +133,69 @@ class SettingsView extends WatchUi.View {
 
     private function startEditing() as Void {
         var app = getApp() as LLM_RunningAppApp;
-        var apiKey = app.getApiKey();
 
-        if (mCurrentItem == 0) {
-            return;
+        System.println("Starting edit for item: " + mCurrentItem);
+
+        switch(mCurrentItem) {
+            case 2:
+                var temp = Properties.getValue("temperature") as Number;
+                System.println("Temperature from Properties: " + temp.toString());
+                if (temp == null) {
+                    temp = 70;
+                }
+                mEditValue = temp;
+                mEditStep = 1;
+                mEditMin = 0;
+                mEditMax = 100;
+                break;
+            case 3:
+                var tokens = Properties.getValue("max_tokens") as Number;
+                System.println("Tokens from Properties: " + tokens.toString());
+                if (tokens == null) {
+                    tokens = 500;
+                }
+                mEditValue = tokens;
+                mEditStep = 100;
+                mEditMin = 100;
+                mEditMax = 2000;
+                break;
         }
-
-        if (mCurrentItem == 1) {
-            if (apiKey.length() == 0) {
-                showApiKeyNotSet();
-            } else {
-                showModelSelection();
-            }
-        } else {
-            switch(mCurrentItem) {
-                case 2:
-                    var temp = Properties.getValue("temperature") as Number;
-                    if (temp == null) {
-                        temp = 70;
-                    }
-                    mEditValue = temp;
-                    mEditStep = 1;
-                    mEditMin = 0;
-                    mEditMax = 100;
-                    break;
-                case 3:
-                    var tokens = Properties.getValue("max_tokens") as Number;
-                    if (tokens == null) {
-                        tokens = 500;
-                    }
-                    mEditValue = tokens;
-                    mEditStep = 100;
-                    mEditMin = 100;
-                    mEditMax = 2000;
-                    break;
-            }
-            mEditing = true;
-            System.println("Starting edit, value: " + mEditValue.toString());
-            updateSettingsText();
-        }
-    }
-
-    private function showApiKeyNotSet() as Void {
-        var app = getApp() as LLM_RunningAppApp;
-        app.clearConfigCache();
-
-        mShowingError = true;
-        updateSettingsText();
-
-        System.println("Showing API Key not set error");
-    }
-
-    private function showModelSelection() as Void {
-        var menu = new WatchUi.Menu2({:title=>"Select AI Model"});
-        menu.addItem(new MenuItem("GLM-4-Flash", "", :model_flash, {}));
-        menu.addItem(new MenuItem("GLM-4", "", :model_4, {}));
-        menu.addItem(new MenuItem("GLM-4-Plus", "", :model_plus, {}));
-        menu.addItem(new MenuItem("GPT-3.5-Turbo", "", :model_gpt35, {}));
-        menu.addItem(new MenuItem("GPT-4", "", :model_gpt4, {}));
-
-        var delegate = new ModelSelectionDelegate();
-        WatchUi.pushView(menu, delegate, WatchUi.SLIDE_IMMEDIATE);
-    }
-
-    function setModel(index as Number) as Void {
-        var app = getApp() as LLM_RunningAppApp;
-        app.saveSetting("model", index);
+        mEditing = true;
+        System.println("Starting edit, mEditValue type: " + (mEditValue != null ? "Object" : "Null") + ", value: " + mEditValue.toString());
         updateSettingsText();
     }
 
     private function incrementEditValue() as Void {
+        System.println("incrementEditValue called, mEditing: " + mEditing);
         if (mEditValue instanceof Number) {
             var val = mEditValue as Number;
+            System.println("Current value: " + val.toString() + ", max: " + mEditMax.toString());
             if (val < mEditMax) {
                 mEditValue = val + mEditStep;
+                System.println("Incremented to: " + mEditValue.toString());
                 updateSettingsText();
+            } else {
+                System.println("Already at max value");
             }
+        } else {
+            System.println("ERROR: mEditValue is null or not Number");
         }
     }
 
     private function decrementEditValue() as Void {
+        System.println("decrementEditValue called, mEditing: " + mEditing);
         if (mEditValue instanceof Number) {
             var val = mEditValue as Number;
+            System.println("Current value: " + val.toString() + ", min: " + mEditMin.toString());
             if (val > mEditMin) {
                 mEditValue = val - mEditStep;
+                System.println("Decremented to: " + mEditValue.toString());
                 updateSettingsText();
+            } else {
+                System.println("Already at min value");
             }
+        } else {
+            System.println("ERROR: mEditValue is null or not Number");
         }
     }
 
@@ -218,9 +203,6 @@ class SettingsView extends WatchUi.View {
         var app = getApp() as LLM_RunningAppApp;
         var key = "";
         switch(mCurrentItem) {
-            case 1:
-                key = "model";
-                break;
             case 2:
                 key = "temperature";
                 break;
@@ -229,6 +211,7 @@ class SettingsView extends WatchUi.View {
                 break;
         }
         if (key.length() > 0) {
+            System.println("Saving " + key + ": " + mEditValue.toString());
             app.saveSetting(key, mEditValue);
         }
         mEditing = false;
@@ -252,18 +235,28 @@ class SettingsView extends WatchUi.View {
         var temperature = app.getTemperature();
         var tokens = app.getMaxTokens();
 
+        System.println("updateSettingsText - before editing check, temp: " + temperature.toString() + ", tokens: " + tokens.toString());
+
         if (mEditing && mCurrentItem == 2) {
-            temperature = mEditValue as Number;
+            System.println("Temperature in edit mode, mEditValue: " + mEditValue.toString() + ", type: " + (mEditValue != null ? "Object" : "Null"));
+            if (mEditValue != null && mEditValue instanceof Number) {
+                temperature = mEditValue as Number;
+                System.println("Temperature updated to: " + temperature.toString());
+            } else {
+                System.println("ERROR: mEditValue is null or not Number");
+            }
         }
 
         if (mEditing && mCurrentItem == 3) {
-            tokens = mEditValue as Number;
+            System.println("Tokens in edit mode, mEditValue: " + mEditValue.toString());
+            if (mEditValue != null && mEditValue instanceof Number) {
+                tokens = mEditValue as Number;
+            }
         }
 
+        System.println("updateSettingsText - after editing check, temp: " + temperature.toString() + ", tokens: " + tokens.toString());
+
         var modelText = model;
-        if (apiKey.length() == 0 && mCurrentItem == 1) {
-            modelText = "[Not set - need API Key]";
-        }
 
         if (mShowingError) {
             mSettingsText = "\n\nError: API Key not configured.\nPlease set API Key in Garmin Connect app.";
@@ -307,6 +300,7 @@ class SettingsView extends WatchUi.View {
             }
         }
 
+        System.println("Final text: " + text);
         mSettingsText = text;
     }
 
