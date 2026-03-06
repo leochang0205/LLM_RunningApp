@@ -1,18 +1,46 @@
 import Toybox.Communications;
+import Toybox.Application.Properties;
 import Toybox.Lang;
 import Toybox.System;
 
 class AIService {
 
     private var mApiKey as String;
+    private var mModel as String;
+    private var mTemperature as Number;
+    private var mMaxTokens as Number;
     private var mDelegate as Object?;
+    private var mApp as LLM_RunningAppApp?;
 
-    function initialize(apiKey as String) {
-        mApiKey = apiKey;
+    function initialize() {
+        var app = getApp() as LLM_RunningAppApp;
+        mApp = app;
+        mApiKey = app.getApiKey();
+        mModel = app.getModelName();
+        mTemperature = app.getTemperature();
+        mMaxTokens = app.getMaxTokens();
     }
 
     function setDelegate(delegate as Object?) as Void {
         mDelegate = delegate;
+    }
+
+    function refreshConfig() as Void {
+        if (mApp != null) {
+            mApiKey = mApp.getApiKey();
+            mModel = mApp.getModelName();
+            mTemperature = mApp.getTemperature();
+            mMaxTokens = mApp.getMaxTokens();
+        }
+    }
+
+    private function getApiURL() as String {
+        var modelIndex = Properties.getValue("model") as Number;
+        if (modelIndex <= 2) {
+            return "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+        } else {
+            return "https://api.openai.com/v1/chat/completions";
+        }
     }
 
     function analyzeBody(data as Dictionary) as String {
@@ -62,18 +90,19 @@ class AIService {
     }
 
     private function callAI(prompt as String) as String {
-        var apiURL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+        refreshConfig();
+        var apiURL = getApiURL();
 
         var parameters = {
-            "model" => "glm-4-flash",
+            "model" => mModel,
             "messages" => [
                 {
                     "role" => "user",
                     "content" => prompt
                 }
             ],
-            "temperature" => 0.7,
-            "max_tokens" => 500
+            "temperature" => mTemperature / 100.0,
+            "max_tokens" => mMaxTokens
         };
 
         var options = {

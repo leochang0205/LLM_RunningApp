@@ -1,0 +1,6 @@
+<properties>
+    <property id="api_key" type="string"></property>
+    <property id="model" type="number">0</property>
+    <property id="temperature" type="number">70</property>
+    <property id="max_tokens" type="number">500</property>
+</properties>

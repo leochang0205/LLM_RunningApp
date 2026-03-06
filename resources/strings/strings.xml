@@ -51,4 +51,18 @@
     <string id="data_collected">数据已采集</string>
     <string id="sending_request">正在发送请求</string>
     <string id="receiving_response">正在接收响应</string>
+
+    <string id="api_key_title">API Key</string>
+    <string id="model_title">AI Model</string>
+    <string id="model_glm4_flash">GLM-4-Flash</string>
+    <string id="model_glm4">GLM-4</string>
+    <string id="model_glm4_plus">GLM-4-Plus</string>
+    <string id="model_gpt35">GPT-3.5-Turbo</string>
+    <string id="model_gpt4">GPT-4</string>
+    <string id="temperature_title">Temperature</string>
+    <string id="max_tokens_title">Max Tokens</string>
+    <string id="settings_view_title">Settings</string>
+    <string id="press_to_edit">按上/下键选择</string>
+    <string id="press_key_confirm">按Enter保存</string>
+    <string id="press_key_back">按Back取消</string>
 </strings>

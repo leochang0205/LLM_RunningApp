@@ -12,7 +12,7 @@ class MotionAnalysisDelegate extends WatchUi.InputDelegate {
     function initialize(view as MotionAnalysisView?) {
         InputDelegate.initialize();
         self.view = view;
-        self.aiService = new AIService("8d1f76c842c34e308b158d9b88413161.u8H2a7yJAEOr27sw");
+        self.aiService = new AIService();
     }
 
     function onKey(keyEvent as WatchUi.KeyEvent) as Boolean {

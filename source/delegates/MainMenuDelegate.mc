@@ -10,7 +10,7 @@ class MainMenuDelegate extends WatchUi.Menu2InputDelegate {
 
     function onSelect(item as MenuItem) {
         System.println("Menu item selected: " + item.getId());
-        
+
         var id = item.getId();
         switch(id) {
             case :body_analysis:
@@ -21,6 +21,9 @@ class MainMenuDelegate extends WatchUi.Menu2InputDelegate {
                 break;
             case :sleep_analysis:
                 showSleepSubmenu();
+                break;
+            case :settings:
+                showSettings();
                 break;
         }
     }
@@ -50,8 +53,14 @@ class MainMenuDelegate extends WatchUi.Menu2InputDelegate {
         menu.addItem(new MenuItem("Sleep Data", "", :sleep_data, {}));
         menu.addItem(new MenuItem("Analysis Data", "", :sleep_analysis, {}));
         menu.addItem(new MenuItem("History", "", :sleep_history, {}));
-        
+
         var delegate = new SleepSubmenuDelegate();
         WatchUi.pushView(menu, delegate, WatchUi.SLIDE_IMMEDIATE);
+    }
+
+    private function showSettings() as Void {
+        var view = new SettingsView();
+        var delegate = new SettingsDelegate(view);
+        WatchUi.pushView(view, delegate, WatchUi.SLIDE_IMMEDIATE);
     }
 }

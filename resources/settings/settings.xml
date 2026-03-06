@@ -1,0 +1,23 @@
+<settings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/settings.xsd">
+    <setting propertyKey="@Properties.api_key" title="@Strings.api_key_title">
+        <settingConfig type="alphaNumeric" maxLength="200"/>
+    </setting>
+
+    <setting propertyKey="@Properties.model" title="@Strings.model_title">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.model_glm4_flash</listEntry>
+            <listEntry value="1">@Strings.model_glm4</listEntry>
+            <listEntry value="2">@Strings.model_glm4_plus</listEntry>
+            <listEntry value="3">@Strings.model_gpt35</listEntry>
+            <listEntry value="4">@Strings.model_gpt4</listEntry>
+        </settingConfig>
+    </setting>
+
+    <setting propertyKey="@Properties.temperature" title="@Strings.temperature_title">
+        <settingConfig type="numeric" min="0" max="100" required="true"/>
+    </setting>
+
+    <setting propertyKey="@Properties.max_tokens" title="@Strings.max_tokens_title">
+        <settingConfig type="numeric" min="100" max="2000" required="true"/>
+    </setting>
+</settings>
