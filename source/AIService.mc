@@ -91,6 +91,12 @@ class AIService {
 
     private function callAI(prompt as String) as String {
         refreshConfig();
+
+        if (mApiKey.length() == 0) {
+            invokeCallback("Error: API Key not set. Please set API Key in settings and try again.");
+            return "API Key not configured. Please set API Key in settings.";
+        }
+
         var apiURL = getApiURL();
 
         var parameters = {

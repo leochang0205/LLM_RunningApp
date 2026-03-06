@@ -96,6 +96,11 @@ class LLM_RunningAppApp extends Application.AppBase {
         mConfig = null;
     }
 
+    function clearConfigCache() as Void {
+        System.println("Clearing config cache");
+        mConfig = null;
+    }
+
     function getConfig() as Dictionary {
         if (mConfig == null) {
             mConfig = {

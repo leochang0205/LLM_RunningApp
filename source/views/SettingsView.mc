@@ -1,49 +1,76 @@
 import Toybox.WatchUi;
 import Toybox.Graphics;
-import Toybox.Graphics.Dc;
+import Toybox.System;
 import Toybox.Lang;
 import Toybox.Application.Properties;
 
 class SettingsView extends WatchUi.View {
+
     private var mCurrentItem as Number;
     private var mEditing as Boolean;
-    private var mEditingText as Boolean;
+    private var mShowingError as Boolean;
     private var mEditValue as Lang.Object;
     private var mEditStep as Number;
     private var mEditMin as Number;
     private var mEditMax as Number;
-    private var mTextInput as WatchUi.TextInput?;
+    private var mSettingsText as String;
 
     function initialize() {
         View.initialize();
         mCurrentItem = 0;
         mEditing = false;
-        mEditingText = false;
+        mShowingError = false;
         mEditValue = 0;
         mEditStep = 1;
         mEditMin = 0;
         mEditMax = 100;
-        mTextInput = null;
+        mSettingsText = "";
     }
 
-    function onLayout(dc as Dc) as Void {
+    function onLayout(dc as Graphics.Dc) as Void {
+        setLayout(Rez.Layouts.SettingsLayout(dc));
+
+        var titleLabel = View.findDrawableById("titleLabel") as Text;
+        titleLabel.setText("Settings");
+
+        updateSettingsText();
     }
 
     function onShow() as Void {
+        System.println("SettingsView onShow");
+        var app = getApp() as LLM_RunningAppApp;
+        app.clearConfigCache();
+        updateSettingsText();
         WatchUi.requestUpdate();
     }
 
-    function onUpdate(dc as Dc) as Void {
-        drawSettings(dc);
+    function onHide() as Void {
+        System.println("SettingsView onHide");
+    }
+
+    function onUpdate(dc as Graphics.Dc) as Void {
+        var settingsLabel = View.findDrawableById("settingsLabel") as Text;
+        if (settingsLabel != null) {
+            settingsLabel.setText(mSettingsText);
+        }
+        View.onUpdate(dc);
     }
 
     function handleSelect() as Void {
+        if (mShowingError) {
+            return;
+        }
+
         if (!mEditing) {
             startEditing();
         }
     }
 
     function handleEnterKey() as Void {
+        if (mShowingError) {
+            return;
+        }
+
         if (mEditing) {
             handleSave();
         } else {
@@ -52,18 +79,28 @@ class SettingsView extends WatchUi.View {
     }
 
     function handleUp() as Void {
+        if (mShowingError) {
+            return;
+        }
+
         if (mEditing) {
             incrementEditValue();
         } else if (mCurrentItem > 0) {
             mCurrentItem = mCurrentItem - 1;
+            updateSettingsText();
         }
     }
 
     function handleDown() as Void {
+        if (mShowingError) {
+            return;
+        }
+
         if (mEditing) {
             decrementEditValue();
         } else if (mCurrentItem < 3) {
             mCurrentItem = mCurrentItem + 1;
+            updateSettingsText();
         }
     }
 
@@ -74,40 +111,87 @@ class SettingsView extends WatchUi.View {
     }
 
     function handleCancel() as Void {
-        if (mEditingText) {
-            mEditingText = false;
+        if (mShowingError) {
+            mShowingError = false;
+            updateSettingsText();
+            System.println("Clearing error state");
         } else if (mEditing) {
             cancelEdit();
+            updateSettingsText();
         } else {
             WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
         }
     }
 
     private function startEditing() as Void {
-        switch(mCurrentItem) {
-            case 0:
-                mEditingText = true;
-                return;
-            case 1:
-                mEditValue = Properties.getValue("model") as Number;
-                mEditStep = 1;
-                mEditMin = 0;
-                mEditMax = 4;
-                break;
-            case 2:
-                mEditValue = Properties.getValue("temperature") as Number;
-                mEditStep = 5;
-                mEditMin = 0;
-                mEditMax = 100;
-                break;
-            case 3:
-                mEditValue = Properties.getValue("max_tokens") as Number;
-                mEditStep = 100;
-                mEditMin = 100;
-                mEditMax = 2000;
-                break;
+        var app = getApp() as LLM_RunningAppApp;
+        var apiKey = app.getApiKey();
+
+        if (mCurrentItem == 0) {
+            return;
         }
-        mEditing = true;
+
+        if (mCurrentItem == 1) {
+            if (apiKey.length() == 0) {
+                showApiKeyNotSet();
+            } else {
+                showModelSelection();
+            }
+        } else {
+            switch(mCurrentItem) {
+                case 2:
+                    var temp = Properties.getValue("temperature") as Number;
+                    if (temp == null) {
+                        temp = 70;
+                    }
+                    mEditValue = temp;
+                    mEditStep = 1;
+                    mEditMin = 0;
+                    mEditMax = 100;
+                    break;
+                case 3:
+                    var tokens = Properties.getValue("max_tokens") as Number;
+                    if (tokens == null) {
+                        tokens = 500;
+                    }
+                    mEditValue = tokens;
+                    mEditStep = 100;
+                    mEditMin = 100;
+                    mEditMax = 2000;
+                    break;
+            }
+            mEditing = true;
+            System.println("Starting edit, value: " + mEditValue.toString());
+            updateSettingsText();
+        }
+    }
+
+    private function showApiKeyNotSet() as Void {
+        var app = getApp() as LLM_RunningAppApp;
+        app.clearConfigCache();
+
+        mShowingError = true;
+        updateSettingsText();
+
+        System.println("Showing API Key not set error");
+    }
+
+    private function showModelSelection() as Void {
+        var menu = new WatchUi.Menu2({:title=>"Select AI Model"});
+        menu.addItem(new MenuItem("GLM-4-Flash", "", :model_flash, {}));
+        menu.addItem(new MenuItem("GLM-4", "", :model_4, {}));
+        menu.addItem(new MenuItem("GLM-4-Plus", "", :model_plus, {}));
+        menu.addItem(new MenuItem("GPT-3.5-Turbo", "", :model_gpt35, {}));
+        menu.addItem(new MenuItem("GPT-4", "", :model_gpt4, {}));
+
+        var delegate = new ModelSelectionDelegate();
+        WatchUi.pushView(menu, delegate, WatchUi.SLIDE_IMMEDIATE);
+    }
+
+    function setModel(index as Number) as Void {
+        var app = getApp() as LLM_RunningAppApp;
+        app.saveSetting("model", index);
+        updateSettingsText();
     }
 
     private function incrementEditValue() as Void {
@@ -115,9 +199,7 @@ class SettingsView extends WatchUi.View {
             var val = mEditValue as Number;
             if (val < mEditMax) {
                 mEditValue = val + mEditStep;
-                if (mEditValue as Number > mEditMax) {
-                    mEditValue = mEditMax;
-                }
+                updateSettingsText();
             }
         }
     }
@@ -127,9 +209,7 @@ class SettingsView extends WatchUi.View {
             var val = mEditValue as Number;
             if (val > mEditMin) {
                 mEditValue = val - mEditStep;
-                if (mEditValue as Number < mEditMin) {
-                    mEditValue = mEditMin;
-                }
+                updateSettingsText();
             }
         }
     }
@@ -153,63 +233,81 @@ class SettingsView extends WatchUi.View {
         }
         mEditing = false;
         mEditValue = 0;
+        updateSettingsText();
     }
 
     private function cancelEdit() as Void {
         mEditing = false;
         mEditValue = 0;
+        updateSettingsText();
     }
 
-    private function drawSettings(dc as Dc) as Void {
-        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_WHITE);
-        dc.clear();
-
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-        dc.drawText(dc.getWidth() / 2, 20, Graphics.FONT_MEDIUM, "Settings", Graphics.TEXT_JUSTIFY_CENTER);
-
+    private function updateSettingsText() as Void {
         var app = getApp() as LLM_RunningAppApp;
-        var config = app.getConfig();
-        var items = [
-            {:key => "api_key", :label => "API Key", :value => config[:apiKey]},
-            {:key => "model", :label => "AI Model", :value => config[:model]},
-            {:key => "temperature", :label => "Temperature", :value => config[:temperature]},
-            {:key => "max_tokens", :label => "Max Tokens", :value => config[:maxTokens]}
-        ];
+        app.clearConfigCache();
 
-        var contentFont = Graphics.FONT_TINY;
-        var y = 65;
+        var apiKey = app.getApiKey();
+        var model = app.getModelName();
 
-        for (var i = 0; i < items.size(); i++) {
-            var item = items[i];
-            var isSelected = (i == mCurrentItem && !mEditing);
+        var temperature = app.getTemperature();
+        var tokens = app.getMaxTokens();
 
-            if (isSelected) {
-                dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_WHITE);
-                dc.fillRectangle(10, y - 5, dc.getWidth() - 20, 38);
-                dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_WHITE);
-            } else {
-                dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-            }
-
-            dc.drawText(20, y, contentFont, item[:label], Graphics.TEXT_JUSTIFY_LEFT);
-            var valueStr = "";
-            if (item[:value] != null) {
-                if (item[:value] instanceof String) {
-                    valueStr = item[:value] as String;
-                } else if (item[:value] instanceof Number) {
-                    valueStr = (item[:value] as Number).toString();
-                }
-            }
-            if (item[:key] == "api_key") {
-                if (valueStr.length() > 0) {
-                    valueStr = "[已配置]";
-                } else {
-                    valueStr = "[未配置]";
-                }
-            }
-            dc.drawText(140, y, contentFont, valueStr, Graphics.TEXT_JUSTIFY_LEFT);
-            y += 45;
+        if (mEditing && mCurrentItem == 2) {
+            temperature = mEditValue as Number;
         }
+
+        if (mEditing && mCurrentItem == 3) {
+            tokens = mEditValue as Number;
+        }
+
+        var modelText = model;
+        if (apiKey.length() == 0 && mCurrentItem == 1) {
+            modelText = "[Not set - need API Key]";
+        }
+
+        if (mShowingError) {
+            mSettingsText = "\n\nError: API Key not configured.\nPlease set API Key in Garmin Connect app.";
+            return;
+        }
+
+        var text = "";
+        for (var i = 0; i < 4; i++) {
+            var prefix = "";
+            var itemText = "";
+
+            if (i == mCurrentItem) {
+                prefix = "> ";
+            } else {
+                prefix = "  ";
+            }
+
+            switch(i) {
+                case 0:
+                    if (apiKey.length() > 0) {
+                        itemText = "API Key: [Configured]";
+                    } else {
+                        itemText = "API Key: [Not set]";
+                    }
+                    break;
+                case 1:
+                    itemText = "AI Model: " + modelText;
+                    break;
+                case 2:
+                    itemText = "Temperature: " + temperature;
+                    break;
+                case 3:
+                    itemText = "Max Tokens: " + tokens;
+                    break;
+            }
+
+            text += prefix + itemText;
+
+            if (i < 3) {
+                text += "\n";
+            }
+        }
+
+        mSettingsText = text;
     }
 
     private function getModelNameByIndex(index as Number) as String {
