@@ -2,6 +2,7 @@ import Toybox.Lang;
 import Toybox.WatchUi;
 import Toybox.System;
 import Toybox.ActivityMonitor;
+import Toybox.Activity;
 import Toybox.Application;
 
 class BodyAnalysisDelegate extends WatchUi.InputDelegate {
@@ -61,10 +62,32 @@ class BodyAnalysisDelegate extends WatchUi.InputDelegate {
     private function collectBodyData() as Dictionary {
         var info = ActivityMonitor.getInfo();
 
+        // Get current heart rate from active activity
+        var currentHR = 0;
+        var activityInfo = Activity.getActivityInfo();
+        if (activityInfo != null) {
+            currentHR = activityInfo.currentHeartRate;
+        }
+
+        // If no active activity, try to get from heart rate history
+        if (currentHR == 0) {
+            var hrHistory = ActivityMonitor.getHeartRateHistory(null, true);
+            if (hrHistory != null) {
+                var hrSample = hrHistory.next();
+                if (hrSample != null && hrSample.heartRate != ActivityMonitor.INVALID_HR_SAMPLE) {
+                    currentHR = hrSample.heartRate;
+                }
+            }
+        }
+
+        // Note: Stress level is not available in the Connect IQ SDK
+        // This is a known limitation requested by developers
+        var stressLevel = 0;
+
         var data = {
             :steps => info.steps,
-            :heartRate => 0,
-            :stress => 0,
+            :heartRate => currentHR,
+            :stress => stressLevel,
             :calories => info.calories,
             :distance => info.distance,
             :floors => info.floorsClimbed

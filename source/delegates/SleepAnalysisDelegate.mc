@@ -67,20 +67,12 @@ class SleepAnalysisDelegate extends WatchUi.InputDelegate {
     }
 
     private function collectSleepData() as Dictionary? {
-        var history = ActivityMonitor.getHistory();
+        // Note: Sleep data is NOT available in the Connect IQ SDK
+        // This is a known feature request from the developer community
+        // See: https://forums.garmin.com/developer/connect-iq/f/discussion/365179/discussion-real-sleep-duration-information-access-through-api
 
-        if (history == null || history.size() < 2) {
-            return null;
-        }
-
-        return {
-            :sleepScore => 85,
-            :totalSleep => 450,
-            :awake => 45,
-            :rem => 105,
-            :deep => 135,
-            :light => 195
-        };
+        // Returning null to indicate sleep data is unavailable
+        return null;
     }
 
     private function showResult(title as String, content as String) as Void {

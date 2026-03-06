@@ -8,100 +8,65 @@ class SleepHistoryView extends WatchUi.View {
     
     private var mFullText as String;
     private var mScrollOffset = 0;
-    private var mLines = [];
-    private var mLineCount = 0;
-    private var mFontHeight = 0;
-    private var mVisibleLines = 0;
-    private var mScreenWidth = 0;
+    private var mTextArea as WatchUi.TextArea or Null;
 
     function initialize() {
         View.initialize();
         mFullText = "";
         mScrollOffset = 0;
-        mFontHeight = 12;
-        mVisibleLines = 15;
+        mTextArea = null;
     }
 
     function onShow() as Void {
         loadHistory();
         mScrollOffset = 0;
+        mTextArea = null;
         WatchUi.requestUpdate();
     }
 
     function onUpdate(dc as Graphics.Dc) as Void {
-        mLines = [];
-        mScreenWidth = dc.getWidth();
-        mFontHeight = dc.getFontHeight(Graphics.FONT_TINY);
-        
-        mVisibleLines = (dc.getHeight() - 20) / mFontHeight;
-        
-        wrapText(dc);
-        
-        drawVisibleText(dc);
-    }
-
-    private function wrapText(dc as Graphics.Dc) as Void {
-        mLines = [];
-        var currentLine = "";
-        var maxWidth = mScreenWidth - 20;
-        
-        for (var i = 0; i < mFullText.length(); i++) {
-            var char = mFullText.substring(i, i + 1);
-            var testLine = currentLine + char;
-            var textWidth = dc.getTextWidthInPixels(testLine, Graphics.FONT_TINY);
-            
-            if (textWidth <= maxWidth && char != "\n") {
-                currentLine = testLine;
-            } else {
-                if (char == "\n") {
-                    if (currentLine.length() > 0) {
-                        mLines.add(currentLine);
-                    }
-                    currentLine = "";
-                } else {
-                    if (currentLine.length() > 0) {
-                        mLines.add(currentLine);
-                    }
-                    currentLine = char;
-                }
-            }
-        }
-        
-        if (currentLine.length() > 0) {
-            mLines.add(currentLine);
-        }
-        
-        mLineCount = mLines.size();
-    }
-
-    private function drawVisibleText(dc as Graphics.Dc) as Void {
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
         
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         
-        var startY = 30;
+        // Calculate TextArea dimensions for circular screen
+        var screenWidth = dc.getWidth();
+        var screenHeight = dc.getHeight();
         
-        for (var i = 0; i < mVisibleLines; i++) {
-            var lineIndex = mScrollOffset + i;
-            
-            if (lineIndex >= mLineCount) {
-                break;
-            }
-            
-            dc.drawText(
-                10,
-                startY + (i * mFontHeight),
-                Graphics.FONT_TINY,
-                mLines[lineIndex],
-                Graphics.TEXT_JUSTIFY_LEFT
-            );
-        }
+        // Use margins to account for circular screen edges
+        var topMargin = 30;
+        var bottomMargin = 20;
+        var availableHeight = screenHeight - topMargin - bottomMargin;
+        
+        // For circular screens, reduce width at top/bottom
+        var textAreaWidth = screenWidth - 60;
+        
+        // Get text to display (from scroll offset)
+        var displayText = mFullText.substring(mScrollOffset, mFullText.length());
+        
+        // Calculate center position
+        var centerX = screenWidth / 2;
+        
+        // Create TextArea - TextArea handles automatic wrapping for circular screens
+        mTextArea = new WatchUi.TextArea({
+            :text => displayText,
+            :color => Graphics.COLOR_WHITE,
+            :font => Graphics.FONT_TINY,
+            :locX => centerX - (textAreaWidth / 2),  // Center horizontally
+            :locY => topMargin,  // Top margin for circular screen
+            :width => textAreaWidth,
+            :height => availableHeight
+        });
+        
+        // Draw TextArea
+        mTextArea.draw(dc);
     }
 
     function scrollUp() as Boolean {
         if (mScrollOffset > 0) {
-            mScrollOffset--;
+            mScrollOffset = mScrollOffset - 20;
+            mTextArea = null;  // Force recreation with new text
             WatchUi.requestUpdate();
             return true;
         }
@@ -109,9 +74,10 @@ class SleepHistoryView extends WatchUi.View {
     }
 
     function scrollDown() as Boolean {
-        var maxOffset = mLineCount - mVisibleLines;
-        if (mScrollOffset < maxOffset) {
-            mScrollOffset++;
+        // Only allow scrolling if there's at least 20 more characters to scroll
+        if (mScrollOffset + 20 < mFullText.length()) {
+            mScrollOffset = mScrollOffset + 20;
+            mTextArea = null;  // Force recreation with new text
             WatchUi.requestUpdate();
             return true;
         }
